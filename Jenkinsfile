@@ -26,8 +26,12 @@ pipeline {
         }
         stage('Build Frontend Docker Image') {
             steps {
-                sh 'docker build -t $DOCKERHUB_USERNAME/k8s-frontend:$IMAGE_TAG ./frontend'
-            }
+                sh """
+                docker build --no-cache -t ${DOCKERHUB_USERNAME}/k8s-frontend:${IMAGE_TAG} \
+                --build-arg REACT_APP_API_URL=${BACKEND_URL} \
+                ./frontend
+                """
+                }
         }
         stage('Build Database Docker Image') {
             steps {
