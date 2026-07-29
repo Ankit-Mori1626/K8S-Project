@@ -41,6 +41,29 @@ pipeline {
                 sh 'docker push $DOCKERHUB_USERNAME/k8s-database:$IMAGE_TAG'
             }
         }
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig-cred', variable: 'KUBECONFIG_FILE')]) {
+                    sh """
+                    export KUBECONFIG=\$KUBECONFIG_FILE
+                    sed -i "s/DOCKERHUB_USERNAME/${DOCKERHUB_USERNAME}/g" k8s/*.yaml
+                    kubectl apply -f k8s/namespace.yaml
+                    kubectl apply -f k8s/secrets.yaml
+                    kubectl apply -f k8s/configmap.yaml
+                    kubectl apply -f k8s/database-deployment.yaml
+                    kubectl apply -f k8s/database-service.yaml
+                    kubectl apply -f k8s/backend-deployment.yaml
+                    kubectl apply -f k8s/backend-service.yaml
+                    kubectl apply -f k8s/frontend-deployment.yaml
+                    kubectl apply -f k8s/frontend-service.yaml
+
+                    kubectl rollout restart deployment backend -n myapp
+                    kubectl rollout restart deployment frontend -n myapp
+                    kubectl rollout restart deployment database -n myapp
+                    """  
+                }
+            }
+        }
     }
 
     post {

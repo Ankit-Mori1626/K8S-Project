@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: database
-          image: DOCKERHUB_USERNAME/myapp-database:latest
+          image: ankitmori1626/k8s-database:latest
           ports:
             - containerPort: 5432
           envFrom:
